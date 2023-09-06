@@ -1,0 +1,193 @@
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Rubik';
+}
+
+body {
+    padding: 100px;
+    color: #ECEFF4;
+    background-color: #2E3440;
+    font-family: 'Rubik', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+}
+
+a {
+    color: #88C0D0;
+}
+
+a:hover {
+    color: #88C0D0;
+    background-color: #4C566A;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.container {
+    max-width: 1000px;
+}
+
+.right {
+    float: right;
+    text-align: right;
+}
+
+.navbar {
+    border-radius: 0;
+    box-shadow: 0 0 0 0,0 6px 12px rgba(34,34,34,0.3);
+}
+
+.navbar-default {
+    background-color: #3B4252;
+    border: none;
+}
+
+.navbar-default .navbar-brand {
+    color: #D8DEE9;
+}
+
+.navbar-default .navbar-brand .accent {
+    color: #8FBCBB;
+}
+
+.navbar-default .navbar-brand:hover {
+    color: #88C0D0;
+}
+
+.navbar-default .navbar-brand:hover .accent {
+    color: #88C0D0;
+}
+
+.navbar-default .navbar-nav li a {
+    color: #D8DEE9;
+}
+
+.navbar-default .navbar-nav li a:hover {
+    color: #E5E9F0;
+    background-color: #434C5E;
+}
+
+.navbar-default .navbar-nav .active a {
+    color: #E5E9F0;
+    background-color: #434C5E;
+}
+
+.navbar-default .navbar-nav .active a:hover {
+    color: #E5E9F0;
+    background-color: #434C5E;
+}
+
+.navbar-default .navbar-toggle:hover{
+    background-color: #434C5E;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #ECEFF4;
+}
+
+#sidebar {
+    margin-left: 15px;
+    margin-top: 50px;
+}
+
+#content {
+    background-color: #3B4252;
+    border-radius: 3px;
+    box-shadow: 0 0 0 0,0 6px 12px rgba(34,34,34,0.1);
+}
+
+#content img {
+    max-width: 100%;
+    height: auto;
+}
+
+footer {
+    font-size: 14px;
+    text-align: center;
+    padding-top: 75px;
+    padding-bottom: 30px;
+}
+
+blockquote footer {
+    text-align: left;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+#post-tags {
+    margin-top: 30px;
+}
+
+#prev-next {
+    padding: 15px 0;
+}
+
+.post-header {
+    margin-bottom: 20px;
+}
+.post-header h2 {
+    font-size: 32px;
+}
+
+#post-meta {
+    font-size: 14px;
+    color: #E5E9F0;
+}
+
+#page-header {
+    border-bottom: 1px solid #dbdbdb;
+    margin-bottom: 20px;
+}
+#page-header h2 {
+    font-size: 32px;
+}
+
+pre {
+    overflow-x: auto;
+}
+pre code {
+    display: block;
+    padding: 0.5em;
+    overflow-wrap: normal;
+    white-space: pre;
+}
+
+code {
+    color: #E5E9F0;
+}
+
+pre, code, .hljs {
+    background-color: #2E3440;
+    border-color: #4C566A;
+}
+
+@media (min-width: 768px) {
+    .navbar {
+        min-height: 70px;
+    }
+    .navbar-nav>li>a {
+        padding: 30px 20px;
+    }
+    .navbar-default .navbar-brand {
+        font-size: 36px;
+        padding: 25px 15px;
+    }
+    #content{
+        margin-top: 30px;
+        padding: 30px 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    body{
+        font-size: 14px;
+    }
+    .navbar-default .navbar-brand {
+        font-size: 30px;
+    }
+    #content{
+        padding: 15px;
+    }
+    #post-meta .right {
+        float:left;
+        text-align: left;
+    }
+}
