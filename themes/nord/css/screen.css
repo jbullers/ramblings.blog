@@ -3,7 +3,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 body {
-    padding-top: 75px;
+    padding-top: 100px;
     color: #ECEFF4;
     background-color: #2E3440;
     font-family: 'Rubik', Helvetica, Arial, sans-serif;
@@ -104,6 +104,11 @@ footer {
     text-align: center;
     padding-top: 75px;
     padding-bottom: 30px;
+}
+
+blockquote {
+    color: #D8DEE9;
+    border-left: 5px solid #4C566A;
 }
 
 blockquote footer {
