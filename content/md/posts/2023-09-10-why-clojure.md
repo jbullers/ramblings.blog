@@ -84,7 +84,7 @@ can be expressed similarly in Clojure:
 ;; This is Clojure code
 (for [n (range 10) :when (even? n)] (* n n))
 ```
-And sure, the Clojure version has very simple *language syntax* (we've seen it all already with Uncle Bob's example), but it layers on a mini-DSL that you also have to learn, which isn't really any different than the Python construct which is supported by explicit syntax. At a certain point, it's all just variations on a theme.
+And sure, the Clojure version has very simple *language syntax* (we've seen it all already with Uncle Bob's example), but it layers on a mini-DSL that you also have to learn, which isn't really any different from the Python construct which is supported by explicit syntax. At a certain point, it's all just variations on a theme.
 
 > For completeness, Clojure can also do something similar to the Groovy approach:
 > ```clojure
@@ -98,7 +98,7 @@ Alright, so if Economy of Expression isn't what's got me hooked, what is? For me
 ### Immutability Baked In
 One core design decision Clojure makes is to make immutability a first class concept that underpins its entire suite of data types. Strings? Immutable. Vectors? Immutable. Maps? You guessed it: immutable. Functions that transform a data structure, such as by adding a new element, do so by returning the result of the transformation, rather than mutating the data structure in-place.
 
-Why is this interesting? Because so much I've what I've learned about defensive programming in Java, even without thinking about the complexities of multi-threading, becomes irrelevant. Here's a simple example of some Java code that I might write:
+Why is this interesting? Because so much of what I've learned about defensive programming in Java, even without thinking about the complexities of multi-threading, becomes irrelevant. Here's a simple example of some Java code that I might write:
 ```java
 // This is Java code
 record Recipe(String name,
@@ -111,7 +111,7 @@ record Recipe(String name,
   }
 }
 ```
-Maybe this is paranoia, but without the extra step of making defensive copies, the whole idea of immutable records goes out the window. I could hope that whatever code constructs a `Recipe` doesn't do anything with the `ingredients` and `steps` lists after construction, or that callers of `recipe.ingredients()` don't try adding or removing from that list, but it's much less error prone to enforce that. Consider Clojure:
+Maybe this is paranoia, but without the extra step of making defensive copies, the whole idea of immutable records goes out the window. I could hope that whatever code constructs a `Recipe` doesn't do anything with the `ingredients` and `steps` lists after construction, or that callers of `recipe.ingredients()` don't try adding or removing from that list, but it's much less error-prone to enforce that. Consider Clojure:
 ```clojure
 ;; This is Clojure code
 (defn recipe [name ingredients steps]
@@ -159,12 +159,18 @@ Years ago, I watched an amazing talk by Brett Victor titled [Inventing on Princi
 
 Now imagine after working like that for years, you see Brett Victor showing off trees that appear to be dancing, or a platformer protagonist jumping with various heights, all by changing some variables live. No restarting, no loss of state between changes. The running program just adapted to his changes in realtime, allowing him to experiment and explore. He took the programming assembly line I was familiar with and turned it in to sculpting, where the line between what he was building and the stuff it was made of was practically non-existant. What fun it would be to code like that!
 
-Well, guess what Clojure can do? Because everything is immutable and state changes are carefully controlled and very explcit, you don't have to worry about the world changing out from under you when you don't expect it. You're free to capture the old state as you apply transformations, making it easy to roll back to a previous state if you need to, or to visualize the differences. The language is also designed from the ground up to support redefining your globals and your functions. Anything you `def` you can `def` again to be something else.
+Well, guess what Clojure can do? Because everything is immutable and state changes are carefully controlled and very explicit, you don't have to worry about the world changing out from under you when you don't expect it. You're free to capture the old state as you apply transformations, making it easy to roll back to a previous state if you need to, or to visualize the differences. The language is also designed from the ground up to support redefining your globals and your functions. Anything you `def` you can `def` again to be something else.
 
 Not only *can* you work like this, it's *the* way to work. Clojure programmers hype the REPL all the time, but this isn't anything like what Python or JavaScript calls a REPL. It's not a thing on the side you can use to run some experiments, while your code sits over there in your favourite editor, completely separate. In Clojure, your favourite editor starts the REPL, connects to it, and your entire coding experience is **sending code from your editor to the REPL and getting responses back**. You define a function, test it out with some inputs, see something is amiss. You change the implementation, redefine it, try again. At no point in this flow do you need to restart the application. You can capture data from your experimentation to replay later, or save in formal test cases.
 
-It took my a while to really figure this out, but it's a whole new world when you do. For a long time, the overall design of the language and the immutability default were a big draw, as was Rich Hickey and the data-centric ideas that permeate the community. I couldn't shake the feeling that I was missing something though, because I just wasn't familiar enough. That was enough to keep me coming back until I cracked the code and really tried doing some actual REPL-Driven Development. And it was so. Much. Fun.
+It took me a while to really figure this out, but it's a whole new world when you do. For a long time, the overall design of the language and the immutability default were a big draw, as was Rich Hickey and the data-centric ideas that permeate the community. I couldn't shake the feeling that I was missing something though, because I just wasn't familiar enough. That was enough to keep me coming back until I cracked the code and really tried doing some actual REPL-Driven Development. And it was so. Much. Fun.
+
+## Wrapping Up
+If you're interested in Clojure, I strongly encourage you to watch experienced developers using their editors to full effect[^4], and to try it out yourself: there's no shortage of great tooling out there for everyone: Calva for VS Code, Cursive for the IntelliJ folks, CIDER for Emacs, and Conjure for NeoVim are some of the big ones. The language has a steep learning curve, especially coming from Java-style OOP languages, but I think the experience made me a better developer and the interactivity just made it a wonderful language for exploration. Clojure also has a very helpful and welcoming community; I found the [Clojurians Slack](http://clojurians.net/) particularly great.
+
+If you aren't new to Clojure, I wonder how you would answer the question: why is Clojure the language for you? Do you agree with my assessment? Does it miss the mark for you? Feel free to message me on the Clojurians Slack. I'm always keen to hear and learn from new perspectives.
 
 [^1]: A few of my favourites: [The Value of Values](https://youtu.be/-6BsiVyC1kM?si=dB5VGy2V5Kh9RGqz), [Simple Made Easy](https://youtu.be/LKtk3HCgTa8?si=6Xa3bZ75iFFTUce6), [The Language of the System](https://youtu.be/ROor6_NGIWU?si=tbdzbg1MZpHayEZL)
 [^2]: Shoutouts to *Functional Design in Clojure*, *ClojureStream Podcast*, and *defn*
 [^3]: Check out [Lambda Island](https://youtube.com/@LambdaIsland?si=_7iH5T15lRX5zP0R) and [emacsrocks](https://youtube.com/@emacsrocks?si=7Z2Z0HYuEu0m0MZL)
+[^4]: I've also been enjoying the content produced by [Andrey Fadeev](https://youtube.com/@andrey.fadeev?si=yeUPWCN4IOJvLD8i)
