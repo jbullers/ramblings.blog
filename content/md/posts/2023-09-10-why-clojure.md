@@ -42,8 +42,8 @@ I don't find this argument particularly convincing for two reasons. First, it's 
 I can also play the same game of explaining just how *easy* it is to read this:
 * `25` is just a number
 * `times` is just a method we call on the number to do something *number* times
-* `{...}` denotes a closure or anonymous function
-* `it` is the current element
+* `{...}` denotes an anonymous function closure
+* `it` is an implicit function argument (the current iteration, in this case)
 
 Yes, you can argue percentages of syntax here, but I've honestly never met a working developer who struggles with the syntax of the language they regularly work in. I *have*, however, met developers who have never worked with a Lisp before and struggle to read it, even after the whirlwind syntax tour.
 
