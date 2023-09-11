@@ -1,6 +1,6 @@
 {
 :title "Why Clojure?"
-:tags ["clojure"]
+:tags ["Clojure"]
 :toc true
 :description "I've had an on-again, off-again relationship with Clojure for years. Despite not using it in any way at work, and despite many false starts, I keep picking it back up. What keeps me interested in Clojure? Why is it so great? Uncle Bob wrote an article about that a few years back, and I think it misses the mark."
 }
