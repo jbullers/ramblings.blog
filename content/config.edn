@@ -29,10 +29,10 @@
  :description-include-elements #{:p :h1 :h2 :h3 :h4 :h5 :h6}
  :clean-urls                   :no-trailing-slash
  :collapse-subdirs?            false
- :hide-future-posts?           true
+ :hide-future-posts?           false
  ;; :klipse                       {}
  :debug?                       false
- ;; :twitter-acct                 nil ;; change this to "your-twitter-handle" to enable auto twitter banners
+ :twitter-acct                 "@jasonbullers" ;; change this to "your-twitter-handle" to enable auto twitter banners
  ;; :mastodon                     {:host nil ;; change this to the domain name of your mastodon host to generate a me-link
  ;;                                :acct nil ;; change this to your mastodon account name to generate a me-link
  }
