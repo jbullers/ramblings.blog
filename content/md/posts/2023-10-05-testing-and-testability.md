@@ -378,7 +378,7 @@ public @Nullable E peek() {
 ```
 
 For completeness, we should also cover the case of calling `pop` on an empty stack.
-Again, we frame this in terms of expected behaviour:
+Again, we frame this in terms of **expected behaviour**:
 
 ```java
 @Test(expected = IllegalStateException.class)
@@ -389,7 +389,550 @@ public void shouldThrowIllegalStateExceptionWhenPoppingAnEmptyStack() {
 
 ## Designing for Testability
 
+Next, let's explore how to design for testability with a [Pomodoro](https://en.wikipedia.org/wiki/Pomodoro_Technique) timer.
+In its initial state, the application couples GUI code with logic, making it difficult to write automated tests.
+Of course, we could write tests entirely from the outside that interact with the application through its GUI,
+but these kinds of tests are exceptionally slow.
+If we aim for exhaustive coverage of our application using such tests,
+we eat up a lot of CPU cycles and discourage frequently running tests in the development environment
+(it's hard to get work done when your keyboard and mouse are hijacked by your running tests).
+
+I omit some of the code here because there's a little too much to include in this post.
+All the code is checked in on GitHub, however, so you can browse the
+[starting](https://github.com/jbullers/refactoring/blob/master/src/main/java/testing/PomodoroTimer.java) and
+[refactored](https://github.com/jbullers/refactoring/blob/testable-pomodoro/src/main/java/testing/PomodoroTimer.java) code there
+(I've tried to keep the commits bite-sized and descriptive as well).
+We'll focus here on the most interesting parts:
+
+```java
+public class PomodoroTimer extends JPanel {
+
+    /* ... */
+    
+    private final Timer timer = new Timer(1000, this::countdownTimer);
+
+    PomodoroTimer(Duration workDuration, Duration longBreakDuration, Duration shortBreakDuration) {
+        this.workDuration = workDuration;
+        this.longBreakDuration = longBreakDuration;
+        this.shortBreakDuration = shortBreakDuration;
+        currentDuration = workDuration;
+
+        setLayout(new BorderLayout());
+        add(pomodorosPanel(), BorderLayout.PAGE_START);
+        add(timerPanel(), BorderLayout.CENTER);
+        add(startButton(), BorderLayout.PAGE_END);
+    }
+
+    /* ... */
+    
+    JButton startButton() {
+        startButton.addActionListener(evt -> toggleTimer());
+        return startButton;
+    }
+    
+    void toggleTimer() {
+        if (timer.isRunning()) {
+            timer.stop();
+            startButton.setText("Start");
+        } else {
+            timer.start();
+            startButton.setText("Stop");
+        }
+    }
+
+    void countdownTimer(ActionEvent e) {
+        currentDuration = currentDuration.minus(1, ChronoUnit.SECONDS);
+        if (currentDuration.isZero()) {
+            toggleTimer();
+
+            if (session == Session.WORK) {
+                pomodorosCompleted++;
+                setPomodorosLabel();
+
+                if (pomodorosCompleted == MAX_WORK_POMODOROS) {
+                    session = Session.LONG_BREAK;
+                    currentDuration = longBreakDuration;
+                } else {
+                    session = Session.SHORT_BREAK;
+                    currentDuration = shortBreakDuration;
+                }
+            } else if (session == Session.LONG_BREAK) {
+                pomodorosCompleted = 0;
+                setPomodorosLabel();
+                session = Session.WORK;
+                currentDuration = workDuration;
+            } else if (session == Session.SHORT_BREAK) {
+                session = Session.WORK;
+                currentDuration = workDuration;
+            }
+
+            setSessionLabel();
+        }
+        setTimerLabel();
+    }
+
+    static void createAndShowGui() {
+        var frame = new JFrame("Pomodoro");
+        frame.setContentPane(new PomodoroTimer(Duration.of(10, ChronoUnit.SECONDS),
+                                               Duration.of(5, ChronoUnit.SECONDS),
+                                               Duration.of(3, ChronoUnit.SECONDS)));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(PomodoroTimer::createAndShowGui);
+    }
+}
+```
+
+The entire application is a `JPanel` subclass called `PomodoroTimer`.
+The panel is constructed with the desired session durations and placed in a `JFrame`.
+The omitted code is responsible either for creating the various Swing components,
+or setting their text to reflect the current state of the application.
+Here's what the application looks like:
+
+### Do I Need To?
+
+Before we jump into taking the code apart to make it more testable,
+let's first discuss why and when we would want to bother doing that in the first place. 
+If you've programmed for longer than five minutes, you've probably heard "it depends" a million times.
+That's exactly what I'm telling you here too, but hopefully with some useful heuristics.
+Note the following is hardly an exhaustive list;
+rather, it captures the typical situations I've experienced in my career where
+I've either benefited from having good automated test coverage,
+or found myself, in hindsight, wasting time and effort on tests that proved effectively useless.
+
+#### Prototyping
+
+One circumstance that I've found fairly common is the need to prototype a solution.
+This can come in the form of a "spike" (experimenting and learning to improve estimation),
+or during active development where you're interested in stakeholder feedback before you commit to a course of action.
+In both of these cases, designing for testability and writing tests can often be a time sink:
+if you aren't sure where exactly you're going with the design,
+you're going to spend an inordinate amount of time fighting to keep your tests compiling.
+You may well choose to write tests in these scenarios because they help you work through the problem.
+That's perfectly fine to do, as long as you don't get too attached.
+Any tests you write while prototyping should be considered throwaway, just like the code itself.
+Don't fall into the trap that because the prototype has test coverage, it's shippable
+If that's the case, you were never really prototyping in the first place,
+and its likely a safe bet the spike went way past its intended time box.
+
+#### One And Done
+
+In a similar vein to prototyping, there are situations where you know,
+with some reasonable probability, that what you are building is a one and done.
+This isn't software you need to add features to, or maintain with any regularity;
+think simple scripts or tools that have a very narrow scope.
+As with prototyping, you may very well benefit from writing some tests to aid development,
+but don't get caught up in full coverage or
+gold plating your design so that all the pieces are testable in isolation.
+Often, programs in this category can be tested manually to ensure they do what you think they do.
+Remember: code that never changes won't develop new bugs, so a comprehensive regression suite is low value.
+
+#### Building the Toolkit
+
+One exception to the above situations where I would strongly encourage testing is to build up your, or your team's, toolkit.
+There's an obvious caveat here:
+the time spent on designing for testability and writing tests isn't urgently needed to do something else.
+Consider, for example, TODO
+
+#### Continued Development
+
+TODO
+
+### A Better Design
+
+Assuming you've determined that you do, in fact, need to get this application under (fast and automated) test,
+here's one possible approach to a testable design.
+I'll go step by step, and as mentioned earlier, only show the most relevant pieces of code here.
+Note that some of these transformations may be a bit risky,
+and so making these changes without any tests in place could introduce bugs.
+For a small application like this,
+it's easy enough to run it regularly to make sure everything still works.
+For larger applications, there may be value in covering at least the most important flows
+with high-level feature tests (e.g. GUI tests).
+Whether you keep such tests once you're done or use them as a safety net depends on
+how useful they are as a regression test suite
+and how much coverage they add beyond what you're able to do with faster tests.
+
+We'll start our transformation by extracting a `PomodoroModel` class from `PomodoroTimer`:
+
+```java
+class PomodoroModel {
+
+    /* ... */
+
+    PomodoroModel(Duration workDuration, Duration longBreakDuration, Duration shortBreakDuration) {
+        this.workDuration = workDuration;
+        this.longBreakDuration = longBreakDuration;
+        this.shortBreakDuration = shortBreakDuration;
+        currentDuration = workDuration;
+    }
+
+    int pomodorosCompleted() {
+        return pomodorosCompleted;
+    }
+    
+    Session session() {
+        return session;
+    }
+    
+    Duration currentDuration() {
+        return currentDuration;
+    }
+
+    void tick(Runnable onZeroDuration) {
+        currentDuration = currentDuration.minus(1, ChronoUnit.SECONDS);
+        if (currentDuration.isZero()) {
+            onZeroDuration.run();
+            if (session == Session.WORK) {
+                pomodorosCompleted = pomodorosCompleted + 1;
+
+                if (pomodorosCompleted == MAX_WORK_POMODOROS) {
+                    session = Session.LONG_BREAK;
+                    currentDuration = longBreakDuration;
+                } else {
+                    session = Session.SHORT_BREAK;
+                    currentDuration = shortBreakDuration;
+                }
+            } else if (session == Session.LONG_BREAK) {
+                pomodorosCompleted = 0;
+                session = Session.WORK;
+                currentDuration = workDuration;
+            } else if (session == Session.SHORT_BREAK) {
+                session = Session.WORK;
+                currentDuration = workDuration;
+            }
+        }
+    }
+}
+
+
+public class PomodoroTimer extends JPanel {
+
+    /* ... */
+    
+    private final Timer timer = new Timer(1000, this::countdownTimer);
+
+    PomodoroTimer(PomodoroModel model) {
+        this.model = model;
+
+        setLayout(new BorderLayout());
+        add(pomodorosPanel(), BorderLayout.PAGE_START);
+        add(timerPanel(), BorderLayout.CENTER);
+        add(startButton(), BorderLayout.PAGE_END);
+    }
+
+    /* ... */
+    
+    JButton startButton() {
+        startButton.addActionListener(evt -> toggleTimer());
+        return startButton;
+    }
+    
+    void toggleTimer() {
+        if (timer.isRunning()) {
+            timer.stop();
+            startButton.setText("Start");
+        } else {
+            timer.start();
+            startButton.setText("Stop");
+        }
+    }
+
+    void countdownTimer(ActionEvent e) {
+        model.tick(this::toggleTimer);
+        setPomodorosLabel();
+        setSessionLabel();
+        setTimerLabel();
+    }
+
+    static void createAndShowGui() {
+        var frame = new JFrame("Pomodoro");
+        frame.setContentPane(
+              new PomodoroTimer(
+                    new PomodoroModel(
+                          Duration.of(10, ChronoUnit.SECONDS),
+                          Duration.of(5, ChronoUnit.SECONDS),
+                          Duration.of(3, ChronoUnit.SECONDS))));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(PomodoroTimer::createAndShowGui);
+    }
+}
+```
+
+At this point, we've already made our application testable without having to go through the GUI.
+This is because the entirety of the "business rules" are captured in `PomodoroModel#tick`.
+We can now write tests that create a model, call `tick`, and inspect the resulting state.
+For example:
+
+```java
+@Test
+public void shouldTransitionToShortBreakAfterCountingDownWorkWhenPomodoroCountIsLessThanMax() {
+    PomodoroModel model = new PomodoroModel(Duration.of(1, SECONDS),
+                                            Duration.ZERO,
+                                            Duration.ZERO);
+    assertThat(model.session(), is(WORK));
+
+    model.tick(() -> {});
+
+    assertThat(model.session(), is(SHORT_BREAK));
+}
+```
+
+However, there are two issues with stopping here:
+
+1. There's temporal coupling through the timer:
+the timer fires, which notifies the GUI panel to ask the model to update itself and
+then reach into the model's fields to get updated values.
+2. There's no way to start or resume the Pomodoro algorithm from a known state.
+This means that any tests we write for verifying something later in the algorithm,
+such as verifying a long break after four completed Pomodoros,
+is somewhat convoluted as it requires the test to run through every state transition from the beginning.
+
+We'll start by solving the second problem.
+First, we introduce some data structures to bundle together data that travels together.
+We can then construct a `PomodoroModel` with these data structures:
+
+```java
+class PomodoroModel {
+
+    /* ... */
+
+    record SessionDurations(Duration workDuration,
+                            Duration longBreakDuration,
+                            Duration shortBreakDuration) {}
+
+    record State(int pomodorosCompleted,
+                 Session session,
+                 Duration currentDuration) {}
+                 
+    PomodoroModel(SessionDurations sessionDurations) {
+        this(sessionDurations, new State(0, Session.WORK, sessionDurations.workDuration()));
+    }
+
+    PomodoroModel(SessionDurations sessionDurations, State state) {
+        this.sessionDurations = sessionDurations;
+        this.state = state;
+    }
+    
+    State state() {
+        return state;
+    }
+
+    void tick(Runnable onZeroDuration) {
+        var updatedDuration = state.currentDuration().minus(1, ChronoUnit.SECONDS);
+        if (updatedDuration.isZero()) {
+            onZeroDuration.run();
+            state = switch (state.session()) {
+                case WORK -> {
+                    int updatedPomodoros = state.pomodorosCompleted() + 1;
+                    yield updatedPomodoros == MAX_WORK_POMODOROS ?
+                          new State(updatedPomodoros,
+                                    Session.LONG_BREAK,
+                                    sessionDurations.longBreakDuration()) :
+                          new State(updatedPomodoros,
+                                    Session.SHORT_BREAK,
+                                    sessionDurations.shortBreakDuration());
+                }
+                case SHORT_BREAK ->
+                      new State(state.pomodorosCompleted(),
+                                Session.WORK,
+                                sessionDurations.workDuration());
+                case LONG_BREAK ->
+                      new State(0, Session.WORK, sessionDurations.workDuration());
+            };
+        } else {
+            state = new State(state.pomodorosCompleted(),
+                              state.session(),
+                              updatedDuration);
+        }
+    }
+}
+
+
+class PomodoroTimer extends JPanel {
+
+    /* ... */
+
+    static void createAndShowGui() {
+        var frame = new JFrame("Pomodoro");
+        frame.setContentPane(
+              new PomodoroTimer(
+                    new PomodoroModel(new SessionDurations(
+                          Duration.of(10, ChronoUnit.SECONDS),
+                          Duration.of(5, ChronoUnit.SECONDS),
+                          Duration.of(3, ChronoUnit.SECONDS)))));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+    
+    /* ... */
+}
+```
+
+With these changes, we don't have to start every test scenario from the beginning.
+This means that tests such as transitioning from four completed Pomodoro sessions to a long break
+do not require carefully calling `tick` the right number of times to advance the state.
+We can simply seed the model with the appropriate starting state, call `tick`, and verify the state transition.
+
+```java
+@Test
+public void shouldTransitionToLongBreakAfterCountingDownWorkWhenPomodoroCountIsMax() {
+    PomodoroModel model = new PomodoroModel(
+          sessionDurations(),
+          new State(3, WORK, Duration.of(1, SECONDS)));
+
+    model.tick(() -> {});
+
+    assertThat(model.state().pomodorosCompleted(), is(4));
+    assertThat(model.state().session(), is(LONG_BREAK));
+}
+```
+
+Finally, we'll tackle the coupling problem by switching to an event-based approach:
+each `tick` of `PomodoroModel` will notify a registered listener of the state change.
+The listener, our GUI, can then update itself using the data contained in the event.
+Recall the current flow is:
+1. The timer fires and notifies the GUI via `countdownTimer`.
+2. The GUI tells the model to update via `tick`.
+3. The GUI pulls data from the model to set its labels.
+
+With events, we can instead have a flow where the GUI simply reacts to changes:
+1. The timer fires and notifies the model to update via `tick`.
+2. The model updates itself and fires events to indicate what has changed.
+3. The GUI sets its labels using the data provided in the events.
+
+Here's what it looks like:
+
+```java
+class PomodoroModel {
+
+    sealed interface PomodoroEvent {}
+    record SessionStarted(State state) implements PomodoroEvent {}
+    record Tick(Duration duration) implements PomodoroEvent {}
+    record SessionEnded() implements PomodoroEvent {}
+
+    @FunctionalInterface
+    interface PomodoroListener {
+        void stateChanged(PomodoroEvent event);
+    }
+    
+    /* ... */
+    
+    void registerPomodoroListener(PomodoroListener listener) {
+        this.listener = listener;
+        fireEvent(new SessionStarted(state));
+    }
+    
+    void tick() {
+        var updatedDuration = state.currentDuration().minus(1, ChronoUnit.SECONDS);
+        if (updatedDuration.isZero()) {
+            fireEvent(new SessionEnded());
+            state = switch (state.session()) {
+                case WORK -> {
+                    int updatedPomodoros = state.pomodorosCompleted() + 1;
+                    yield updatedPomodoros == MAX_WORK_POMODOROS ?
+                          new State(updatedPomodoros,
+                                    Session.LONG_BREAK,
+                                    sessionDurations.longBreakDuration()) :
+                          new State(updatedPomodoros,
+                                    Session.SHORT_BREAK,
+                                    sessionDurations.shortBreakDuration());
+                }
+                case SHORT_BREAK ->
+                      new State(state.pomodorosCompleted(),
+                                Session.WORK,
+                                sessionDurations.workDuration());
+                case LONG_BREAK ->
+                      new State(0, Session.WORK, sessionDurations.workDuration());
+            };
+            fireEvent(new SessionStarted(state));
+        } else {
+            state = new State(state.pomodorosCompleted(),
+                              state.session(),
+                              updatedDuration);
+            fireEvent(new Tick(updatedDuration));
+        }
+    }
+}
+
+
+class PomodoroTimer extends JPanel {
+
+    /* ... */
+    
+    PomodoroTimer(PomodoroModel model) {
+        timer = new Timer(1000, evt -> model.tick());
+
+        setLayout(new BorderLayout());
+        add(pomodorosPanel(), BorderLayout.PAGE_START);
+        add(timerPanel(), BorderLayout.CENTER);
+        add(startButton(), BorderLayout.PAGE_END);
+
+        model.registerPomodoroListener(event -> {
+            switch (event) {
+                case SessionStarted(State(var pomodorosCompleted, var session, var currentDuration)) -> {
+                    setPomodorosLabel(pomodorosCompleted);
+                    setSessionLabel(session);
+                    setTimerLabel(currentDuration);
+                }
+                case Tick(var duration) -> setTimerLabel(duration);
+                case SessionEnded sessionEnded -> toggleTimer();
+            }
+        });
+    }
+    
+    /* countdownTimer is no longer needed */
+    
+    /* ... */
+}
+```
+
+While this final step doesn't necessarily make the application more "testable" than it was at the previous step,
+it is arguably a better design as we've eliminated remaining points of coupling.
+The model now operates entirely on its own and pushes data out
+rather than occupying this strange middle ground of expecting data to be pulled,
+except for taking an `onZeroDuration` callback that acts as a sort of push.
+
+With this final change in place, the above test for transitioning to a long break now looks like this:
+
+```java
+@Test
+public void shouldTransitionToLongBreakAfterCountingDownWorkWhenPomodoroCountIsMax() {
+    PomodoroModel model = new PomodoroModel(
+          withDuration(sessionDurations(), LONG_BREAK, Duration.of(10, SECONDS)),
+          new State(3, WORK, Duration.of(1, SECONDS)));
+    model.registerPomodoroListener(capturingEventListener);
+
+    model.tick();
+
+    assertThat(capturingEventListener.events, contains(List.of(
+          is(equalTo(new SessionStarted(new State(3, WORK, Duration.of(1, SECONDS))))),
+          is(instanceOf(SessionEnded.class)),
+          is(equalTo(new SessionStarted(new State(4, LONG_BREAK, Duration.of(10, SECONDS))))))));
+}
+```
+
+This version of the test is actually more complete than the previous version
+in that it asserts the initial state (first event) along with all state changes
+and all state values.
+As such, it paints a much clearer picture of the algorithm under test.
+
+## Final Remarks
+
+TODO
+
 [^1]: Don't get me started on "sprints".
 The team is supposed to work at a pace that they can sustain indefinitely.
 We have a word for long races at a steady pace, and they're not "sprints."
 Language has a huge impact on framing.
+    
