@@ -493,6 +493,8 @@ The omitted code is responsible either for creating the various Swing components
 or setting their text to reflect the current state of the application.
 Here's what the application looks like:
 
+![A Pomodoro timer application with two completed work sessions](../img/pomodoro.png)
+
 ### Do I Need To?
 
 Before we jump into taking the code apart to make it more testable,
