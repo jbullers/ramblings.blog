@@ -524,23 +524,39 @@ and its likely a safe bet the spike went way past its intended time box.
 In a similar vein to prototyping, there are situations where you know,
 with some reasonable probability, that what you are building is a one and done.
 This isn't software you need to add features to, or maintain with any regularity;
-think simple scripts or tools that have a very narrow scope.
+think simple scripts or tools that have a very narrow scope and feature set.
 As with prototyping, you may very well benefit from writing some tests to aid development,
 but don't get caught up in full coverage or
 gold plating your design so that all the pieces are testable in isolation.
 Often, programs in this category can be tested manually to ensure they do what you think they do.
-Remember: code that never changes won't develop new bugs, so a comprehensive regression suite is low value.
+Remember: code that never changes won't spontaneously develop new bugs, so a comprehensive regression suite is low value.
 
 #### Building the Toolkit
 
 One exception to the above situations where I would strongly encourage testing is to build up your, or your team's, toolkit.
 There's an obvious caveat here:
 the time spent on designing for testability and writing tests isn't urgently needed to do something else.
-Consider, for example, TODO
+Consider, for example, if we haven't had exposure to testing particularly tricky parts of a code base,
+or we haven't used certain test libraries or tools long enough or in enough depth to build familiarity.
+Writing tests, or finding ways to make tricky code testable, becomes a valuable exercise not for the tests themselves,
+but for the practice and learning that comes from it.
 
 #### Continued Development
 
-TODO
+The clear winner for designing for testability is any software that needs to evolve over time.
+As features are added, any sort of manual testing becomes more time consuming, more complicated, and less likely to be thorough.
+Skipping out on good automated test coverage is likely to become a liability,
+but that alone is not an argument for designing for testability:
+we could write tests that treat the entire application as a black box.
+What we lose testing at that level is fast feedback and
+the confidence that some new piece of code we just wrote does what we think it does.
+A phrase I've heard used in the past is that high-level behavioural tests help you prove the software "does the right thing",
+while lower-level tests help you prove the software "does the thing right".
+Consider the stack data structure from earlier in this post.
+If it were a part of a larger program, we could opt to test it implicitly by testing the program itself at a high level,
+or we could test the stack itself with lower-level tests.
+Both would get us coverage, but the latter provides us with fast tests that can run various permutations and
+give us confidence that at least that piece of code works as we think it should.
 
 ### A Better Design
 
@@ -929,7 +945,16 @@ As such, it paints a much clearer picture of the algorithm under test.
 
 ## Final Remarks
 
-TODO
+There's a lot of material out there about testing and testability,
+but when I think back to things I've learned and reflect on the kinds of tests I've written,
+I can't help but feel that so much of it skips the most important part:
+understanding the tradeoffs and building intuition.
+I hope that the above exploration helps you to improve your testing techniques and
+gives you the confidence to raise the question of whether automated testing is worth the effort
+in a given circumstance.
+When you do write tests, test around behaviours instead of some artificial and arbitrary "unit" of syntax.
+And spend the time to design for testability when you stand to reap a benefit from the investment;
+there are situations where not spending that time is a net positive.
 
 [^1]: Don't get me started on "sprints".
 The team is supposed to work at a pace that they can sustain indefinitely.
