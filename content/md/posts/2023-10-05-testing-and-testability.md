@@ -8,7 +8,7 @@
 
 I've written about testing [before](/posts/2016-09-09-impossible-test)
 in response to some struggles I was having introducing automated tests to my code base at work.
-That post focussed mainly on safely making seams in existing code to get it under test,
+That post focused mainly on safely making seams in existing code to get it under test,
 but didn't really consider the question of what to test or when
 (it's also a fairly domain specific example and was geared toward an audience of coworkers).
 Over time, I've gained some insight into what kinds of tests were worth writing,
@@ -165,7 +165,7 @@ public void testPush() {
     var updatedStack = stack.push("Hello").push("World");
     
     // Assert
-    // Hmmm...
+    // Hmmm... how do we assert push worked?
 }
 ```
 
@@ -195,7 +195,7 @@ Next up, `peek`:
 public void testPeek() {
     // Arrange
     var stack = Stack<String>.empty();
-    // Hmmm...
+    // Hmmm... how do we get the stack in the right state?
     
     // Act
     var topElement = stack.peek();
@@ -258,7 +258,7 @@ Through this lens, we see that tests fall into two broad categories:
 * Tests that aid in development, but you can throw away later; and
 * Tests that you keep and run regularly
 
-Here, we're particular interested in the ones that we keep.
+Here, we're particularly interested in the ones that we keep.
 If these tests are sticking around long-term, then we want to make sure they
 **clearly communicate what the subject under test should do**.
 Moreover, they should be focussed on intended *behaviour* rather than mechanism.
@@ -271,7 +271,7 @@ As a simple mnemonic, I like to start all my test names with `should`.
 For example, we would say "a stack should..." and write the tests that fill in the blanks.
 This reminds me to frame my tests around the desired behaviour of the subject under test
 rather than mechanically writing a test for each public method.
-An interesting side-effect of framing things this way is that
+An interesting side effect of framing things this way is that
 it moves away from the very rigid "unit means method" notion we started with earlier.
 Kent Beck himself has been intentionally vague on what exactly a "unit" is,
 and I think this is the reason: a testable unit is very much dependent on context.
@@ -326,7 +326,7 @@ Stack.<String>empty().peek();
 Oops. While the signature of `peek` promises a `null` return when the stack is empty,
 the implementation forgets to deal with that case and blows up.
 
-Let's imagine that our stack was released out into the wild
+Let's imagine that our stack was released out into the wild,
 and we learned about this problem via a bug report.
 A good approach to fixing bugs is to try and reproduce the bug with a (failing) test,
 and then fix the problem and see that all tests pass.
@@ -348,11 +348,11 @@ public void shouldNotThrowIndexOutOfBoundsWhenPeekingAnEmptyStack() {
 ```
 
 Technically, this is true: our stack certainly *should not* throw an exception in this situation.
-This isn't particularly useful though, because there's a lot of things our stack *should not* do when we `peek`.
+This isn't particularly useful though, because there are a lot of things our stack *should not* do when we `peek`.
 That's not to say that negative tests are useless:
 there are situations where you genuinely do need to test something does not happen in order to prove correctness.
 For example, a listener *should not* be notified if an update did not change the value.
-This isn't one of those cases, however, and so we should focus instead on what the stack *should* do:
+However, this isn't one of those cases, and so we should focus instead on what the stack *should* do:
 
 ```java
 @Test
@@ -517,9 +517,9 @@ you're going to spend an inordinate amount of time fighting to keep your tests c
 You may well choose to write tests in these scenarios because they help you work through the problem.
 That's perfectly fine to do, as long as you don't get too attached.
 Any tests you write while prototyping should be considered throwaway, just like the code itself.
-Don't fall into the trap that because the prototype has test coverage, it's shippable
+Don't fall into the trap that because the prototype has test coverage, it's shippable.
 If that's the case, you were never really prototyping in the first place,
-and its likely a safe bet the spike went way past its intended time box.
+and it's likely a safe bet the spike went way past its intended time box.
 
 #### One And Done
 
@@ -538,15 +538,18 @@ Remember: code that never changes won't spontaneously develop new bugs, so a com
 One exception to the above situations where I would strongly encourage testing is to build up your, or your team's, toolkit.
 There's an obvious caveat here:
 the time spent on designing for testability and writing tests isn't urgently needed to do something else.
-Consider, for example, if we haven't had exposure to testing particularly tricky parts of a code base,
-or we haven't used certain test libraries or tools long enough or in enough depth to build familiarity.
-Writing tests, or finding ways to make tricky code testable, becomes a valuable exercise not for the tests themselves,
-but for the practice and learning that comes from it.
+Consider a situation where we haven't had exposure to testing particularly tricky parts of a code base.
+It may be beneficial to write some tests, even if they're low value in and of themselves;
+we derive value from overcoming the challenge of writing them.
+Another common situation is where we haven't used certain test libraries or tools long enough or in enough depth
+to build familiarity with their features or usage patterns.
+Writing tests, or finding ways to make tricky code testable, becomes valuable for the practice and learning that comes from it.
+The more we have in our toolkit, the better equipped we are to write the tests that truly matter.
 
 #### Continued Development
 
 The clear winner for designing for testability is any software that needs to evolve over time.
-As features are added, any sort of manual testing becomes more time consuming, more complicated, and less likely to be thorough.
+As features are added, any sort of manual testing becomes more time-consuming, more complicated, and less likely to be thorough.
 Skipping out on good automated test coverage is likely to become a liability,
 but that alone is not an argument for designing for testability:
 we could write tests that treat the entire application as a black box.
@@ -952,8 +955,7 @@ but when I think back to things I've learned and reflect on the kinds of tests I
 I can't help but feel that so much of it skips the most important part:
 understanding the tradeoffs and building intuition.
 I hope that the above exploration helps you to improve your testing techniques and
-gives you the confidence to raise the question of whether automated testing is worth the effort
-in a given circumstance.
+gives you the confidence to ask whether automated testing is worth the effort in a given circumstance.
 When you do write tests, test around behaviours instead of some artificial and arbitrary "unit" of syntax.
 And spend the time to design for testability when you stand to reap a benefit from the investment;
 there are situations where not spending that time is a net positive.
@@ -962,4 +964,3 @@ there are situations where not spending that time is a net positive.
 The team is supposed to work at a pace that they can sustain indefinitely.
 We have a word for long races at a steady pace, and they're not "sprints."
 Language has a huge impact on framing.
-    
